@@ -13,8 +13,8 @@ describe Neo4j::Replay::CreateNodeEvent do
       Person.create
       finish_tx
       Person.all.size.should == 1
-      Neo4j::Replay.instance.events.size.should == 1
-      Neo4j::Replay.instance.events.first.wrapper.should be_kind_of(Neo4j::Replay::CreateNodeEvent)
+      Neo4j::Replay.events.size.should == 1
+      Neo4j::Replay.events.first.wrapper.should be_kind_of(Neo4j::Replay::CreateNodeEvent)
     end
   end
 
@@ -27,9 +27,9 @@ describe Neo4j::Replay::CreateNodeEvent do
     end
 
     it "creates a UUID for the event" do
-      @event[:replay_uuid].should_not be_nil
-      @event[:replay_uuid].should_not be_empty
-      @event[:replay_uuid].size.should > 5 # at least 5 characters
+      @event.replay_uuid.should_not be_nil
+      @event.replay_uuid.should_not be_empty
+      @event.replay_uuid.size.should > 5 # at least 5 characters
     end
 
     describe "#replay" do
@@ -37,8 +37,8 @@ describe Neo4j::Replay::CreateNodeEvent do
         new_tx
         node = @event.replay
         finish_tx
-        node['replay_uuid'].should_not be_nil
-        node['replay_uuid'].should_not be_empty
+        node['_replay_uuid'].should_not be_nil
+        node['_replay_uuid'].should_not be_empty
         node['_classname'].should == 'NodeWithDefaultUUID'
       end
     end
@@ -63,8 +63,8 @@ describe Neo4j::Replay::CreateNodeEvent do
     end
 
     it "creates an UUID for the event" do
-      @event['replay_uuid'].should == @node['my_uuid']
-      @event['replay_uuid'].should_not be_nil
+      @event.replay_uuid.should == @node['my_uuid']
+      @event.replay_uuid.should_not be_nil
     end
 
     describe "#replay" do
@@ -73,7 +73,7 @@ describe Neo4j::Replay::CreateNodeEvent do
         node = @event.replay
         finish_tx
         node['my_uuid'].should == 4242
-        node['my_uuid'].should == @event['replay_uuid']
+        node['my_uuid'].should == @event.replay_uuid
       end
     end
 
@@ -81,7 +81,7 @@ describe Neo4j::Replay::CreateNodeEvent do
       it "deletes the instance" do
         node = mock('existing instance')
         node.should_receive(:destroy)
-        NodeWithCustomUUID.stub!(:find_by_my_uuid).and_return(node)
+        NodeWithCustomUUID.stub!(:find_by_replay_uuid).and_return(node)
         @event.rewind
       end
     end

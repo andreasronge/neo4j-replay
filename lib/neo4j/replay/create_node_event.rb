@@ -8,9 +8,8 @@ module Neo4j
 
 
       def replay
-        classname = self[:replay_class]
-        node = Neo4j::Node.new(:_classname => classname)
-        clazz = classname.constantize
+        node = Neo4j::Node.new(:_classname => replay_class)
+        clazz = replay_class.constantize
         clazz.set_replay_uuid(node, replay_uuid)
         node
       end

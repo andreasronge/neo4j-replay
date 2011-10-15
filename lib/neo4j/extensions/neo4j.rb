@@ -3,48 +3,45 @@ module Neo4j::Replay
     def _extend_with_custom_uuid(uuid_key)
       meta = class << self; self; end
 
-      meta.send(:define_method, :get_replay_uuid) do |node|
-        node[uuid_key]
-      end
+      meta.send(:define_method, :get_replay_uuid_key) { uuid_key }
 
-      meta.send(:define_method, :set_replay_uuid) do |node, uuid|
-        node[uuid_key] = uuid
-      end
-
-      meta.send(:define_method, :find_by_replay_uuid) do |uuid|
-        self.send("find_by_#{uuid_key}")
-      end
+      meta.send(:alias_method, :find_by_replay_uuid, :"find_by_#{uuid_key}")
 
       def self.init_replay_uuid(_)
       end
     end
 
     def _extend_with_default_uuid
-      self.index :replay_uuid
-      self.property :replay_uuid
+      self.index :_replay_uuid
+      self.property :_replay_uuid
 
-      #self.send(:alias_method, :to_s, :foobar)
+      def self.get_replay_uuid_key
+        :_replay_uuid
+      end
+
       def self.init_replay_uuid(node)
-        set_replay_uuid(node, UUID.generate )
-      end
-
-      def self.set_replay_uuid(node, uuid)
-        node['replay_uuid'] = uuid
-      end
-
-      def self.get_replay_uuid(node)
-        node['replay_uuid']
+        node[get_replay_uuid_key] = UUID.generate
       end
     end
 
     def replay(options={})
-      puts "REPLAY #{options.inspect}, self=#{self}"
       uuid_key = options[:uuid]
       if uuid_key
         _extend_with_custom_uuid(uuid_key.to_s)
       else
         _extend_with_default_uuid
       end
+
+      def self.set_replay_uuid(node, uuid)
+        key = get_replay_uuid_key
+        node[key] = uuid
+      end
+
+      def self.get_replay_uuid(node)
+        key = get_replay_uuid_key
+        node[key]
+      end
+
       Neo4j::Replay.add_replay_on(self)
     end
   end
@@ -57,8 +54,8 @@ module Neo4j::Replay
   module Mixin
 
     def self.extended(other)
-      other.index :replay_uuid
-      other.property :replay_uuid
+      other.index :_replay_uuid
+      other.property :_replay_uuid
     end
 
   end

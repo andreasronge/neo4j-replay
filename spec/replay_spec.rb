@@ -33,7 +33,7 @@ describe "Neo4j::Replay" do
       end
 
       subject do
-        Neo4j::Replay.instance
+        Neo4j::Replay
       end
 
       it "creates an event with an replay_uuid and replay_class" do

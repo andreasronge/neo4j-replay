@@ -5,6 +5,14 @@ describe Neo4j::Replay::ChangePropertyEvent do
     Neo4j::Replay.clear
   end
 
+  context "when a property changes on a node" do
+    it "should create a Neo4j::Replay::ChangePropertyEvent" do
+      pending
+      Neo4j::Replay.instance.events.size.should == 1
+      Neo4j::Replay.instance.events.first.wrapper.should be_kind_of(Neo4j::Replay::ChangePropertyEvent)
+    end
+  end
+
   context "node does not exist which should change" do
     before(:each) do
       @node = NodeWithDefaultUUID.new

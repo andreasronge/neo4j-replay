@@ -14,11 +14,11 @@ module Neo4j
       def replay
         classname = self[:replay_class]
         clazz = classname.constantize
-        node = clazz.find_by_replay_uuid(self[:replay_uuid])
+        node = clazz.find_by_replay_uuid(replay_uuid)
         if node
           node[key] = new_value
         else
-          self.error = "Can't find #{classname} node with replay uuid = '#{self[:replay_uuid]}'"
+          self.error = "Can't find #{classname} node with replay uuid = '#{replay_uuid}'"
         end
 
         node
@@ -27,7 +27,7 @@ module Neo4j
       def rewind
         classname = self[:replay_class]
         clazz = classname.constantize
-        node = clazz.find_by_replay_uuid(self[:replay_uuid])
+        node = clazz.find_by_replay_uuid(replay_uuid)
         node[key] = old_value
         node
       end

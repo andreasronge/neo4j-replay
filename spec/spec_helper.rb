@@ -15,8 +15,16 @@ end
 
 def finish_tx
   return unless @tx
-  @tx.success
-  @tx.finish
+  begin
+    @tx.success
+    @tx.finish
+  rescue Exception => e
+    if e.respond_to?(:cause)
+      puts "Java Exception in a transaction, cause: #{e.cause}"
+      e.cause.print_stack_trace
+    end
+    raise
+  end
   @tx = nil
 end
 

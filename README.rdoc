@@ -43,30 +43,30 @@ Raw interaction with Events
 
   Neo4j::Replay.events #=> an array of events e.g. Neo4j::CreateNodeEvent
 
-  event = Neo4j::Replay::CreateNodeEvent.create(:replay_class => 'Person', :replay_uuid => 1)
+  event = Neo4j::Replay::CreateNodeEvent.create(:replay_class => 'Person', :_replay_uuid => 1)
   event.replay # create a Person node
   event.rewind # deletes the Person node
 
-  event = Neo4j::Replay::DestroyNodeEvent.create(:replay_class => 'Person', :replay_uuid => 1)
+  event = Neo4j::Replay::DestroyNodeEvent.create(:replay_class => 'Person', :_replay_uuid => 1)
   event.replay # deletes the Person node, all the properties and relationship must already have been destroyed
   event.rewind # restore the Person node
 
-  event = Neo4j::Replay::DestroyRelEvent.create(:type => :friends, :replay_uuid => 1, :replay_uuid => 2)
+  event = Neo4j::Replay::DestroyRelEvent.create(:type => :friends, :_replay_uuid => 1, :_replay_uuid => 2)
   event.replay # creates relationship
   event.rewind # deletes relationship
 
   # only relationship between two node object using the ReplayMixin is allowed
-  event = Neo4j::Replay::CreateRelEvent.create(:type => :friends, :replay_uuid => 1, :replay_uuid => 2)
+  event = Neo4j::Replay::CreateRelEvent.create(:type => :friends, :_replay_uuid => 1, :_replay_uuid => 2)
   event.replay # creates relationship
   event.rewind # deletes relationship
 
-  event = Neo4j::Replay::ChangePropEvent.create(:replay_uuid => 1, :key => 'name', :new_value => 'andreas', :old_value => 'foo' )
+  event = Neo4j::Replay::ChangePropEvent.create(:_replay_uuid => 1, :key => 'name', :new_value => 'andreas', :old_value => 'foo' )
   event.replay # sets the property name to andreas
   event.rewind # restore the property to old value foo
 
 == Custom UUID
 
-Notice each node is expected to have a unique identifier :replay_uuid, which will be generated.
+Notice each node is expected to have a unique identifier :_replay_uuid, which will be generated.
 It is possible to user your own UUID:
 
   class Person < Neo4j::Rails::Model

@@ -36,6 +36,10 @@ class NodeWithCustomUUID < HashWithIndifferentAccess
     self['my_uuid'] = 4242
   end
 
+  def self.find_by_my_uuid(*)
+    puts "find_by_my_uuid called"
+    nil
+  end
   extend Neo4j::Replay::Extension
   replay :uuid => :my_uuid
 end
