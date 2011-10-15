@@ -1,0 +1,83 @@
+= Neo4j Replay
+
+Adds a replay behaviour to the Neo4j Node.
+This is under heavy development - don't use it yet.
+
+== Usage
+
+Simple Usage
+
+  class Person < Neo4j::Rails::Model
+    # only object specifid with the replay method will replayable
+    replay
+    property :name
+    has_n :friends
+  end
+
+  p = Person.create(:name => 'andreas')
+  p.name = 'foo'
+  p.save
+  Neo4j::Replay.version # => 1
+  Neo4j::Replay.rewind(0)
+  p.reload!
+  p.name => 'andreas'
+
+Replay with relationships
+
+  p2 = Person.create
+  p3 = Person.create
+  p2.friends << p3
+  p2.save!
+
+  Neo4j::Replay.version # => 3 (3 transactions)
+
+  Neo4j::Replay.rewind(2)
+  p2.reload!
+  p3.reload!
+  p2.friends.empty? #=> true
+
+
+== Interaction with events
+
+Raw interaction with Events
+
+  Neo4j::Replay.events #=> an array of events e.g. Neo4j::CreateNodeEvent
+
+  event = Neo4j::Replay::CreateNodeEvent.create(:replay_class => 'Person', :replay_uuid => 1)
+  event.replay # create a Person node
+  event.rewind # deletes the Person node
+
+  event = Neo4j::Replay::DestroyNodeEvent.create(:replay_class => 'Person', :replay_uuid => 1)
+  event.replay # deletes the Person node, all the properties and relationship must already have been destroyed
+  event.rewind # restore the Person node
+
+  event = Neo4j::Replay::DestroyRelEvent.create(:type => :friends, :replay_uuid => 1, :replay_uuid => 2)
+  event.replay # creates relationship
+  event.rewind # deletes relationship
+
+  # only relationship between two node object using the ReplayMixin is allowed
+  event = Neo4j::Replay::CreateRelEvent.create(:type => :friends, :replay_uuid => 1, :replay_uuid => 2)
+  event.replay # creates relationship
+  event.rewind # deletes relationship
+
+  event = Neo4j::Replay::ChangePropEvent.create(:replay_uuid => 1, :key => 'name', :new_value => 'andreas', :old_value => 'foo' )
+  event.replay # sets the property name to andreas
+  event.rewind # restore the property to old value foo
+
+== Custom UUID
+
+Notice each node is expected to have a unique identifier :replay_uuid, which will be generated.
+It is possible to user your own UUID:
+
+  class Person < Neo4j::Rails::Model
+     property :emplyee_number
+     index :emplyee_number
+     replay :uuid => :employee_number
+  end
+
+== Persistance and serialization
+
+  Neo4j::Replay.export(from, to, filename) # stores the event in a csv file.
+
+  Neo4j::Replay.import(filename) # reads a csv file of events and replay them.
+
